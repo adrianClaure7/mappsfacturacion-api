@@ -218,37 +218,49 @@ router.put("/updateUsers/:merchantID", function (req, res) {
   }
 });
 
-router.post("/registerMerchant", function (req, res) {
-  var currentMongoose = req.currentMongoose;
-  if (currentMongoose) {
-    var merchant = new Merchant(currentMongoose)(req.body);
-    merchant.database = `${merchant.code}DB`;
-    merchant.notDelete = true;
-    merchant.createdBy = req.auth ? req.auth.username : "";
-    if (
-      !!req.auth &&
-      req.auth.permissions.some(
-        x => x.code === USER_PERMISSIONS.SUPER_ADMIN.code
-      )
-    ) {
-      merchant
-        .registerMerchant(currentMongoose)
-        .then(async newMerchant => {
-          if (newMerchant) {
-            await Counter(currentMongoose).updateOne({ code: COUNTER_CODES.MERCHANTS }, { $inc: { counter: 1 } });
-            res.json(newMerchant);
-          } else {
-            res.status(403).send("Merchant not created")
-          }
-        })
-        .catch(err => {
-          res.status(403).send(err)
-        });
-    } else {
-      res.status(403).send("The user should have super admin permissions");
+router.post("/registerMerchant", async function (req, res) {
+  const currentMongoose = req.currentMongoose;
+
+  if (!currentMongoose) {
+    return res.status(404).json({ error: "Conexión a la base de datos no encontrada." });
+  }
+
+  const merchantData = req.body;
+  const merchant = new Merchant(currentMongoose)(merchantData);
+
+  // Configurar datos adicionales
+  merchant.database = `${merchant.code}DB`;
+  merchant.notDelete = true;
+  merchant.createdBy = req.auth ? req.auth.username : "";
+
+  // Validar permisos
+  const hasSuperAdmin = req.auth &&
+    req.auth.permissions.some(
+      x => x.code === USER_PERMISSIONS.SUPER_ADMIN.code
+    );
+
+  if (!hasSuperAdmin) {
+    return res.status(403).json({ error: "El usuario debe tener permisos de super administrador." });
+  }
+
+  try {
+    const newMerchant = await merchant.registerMerchant(currentMongoose);
+
+    if (!newMerchant) {
+      return res.status(403).json({ error: "No se pudo crear el comercio (merchant)." });
     }
-  } else {
-    res.status(404).json("Connection mongoose not found");
+
+    // Incrementar contador
+    await Counter(currentMongoose).updateOne(
+      { code: COUNTER_CODES.MERCHANTS },
+      { $inc: { counter: 1 } }
+    );
+
+    return res.json(newMerchant);
+
+  } catch (err) {
+    console.error("Error al registrar merchant:", err);
+    return res.status(403).json({ error: err.message || err });
   }
 });
 

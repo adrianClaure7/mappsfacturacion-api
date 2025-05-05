@@ -40,47 +40,36 @@ class Register {
     });
   }
 
-  validateAuthUsersAndMerchant(merchant, superAdminMongoose, Merchant) {
-    const that = this;
+  async validateAuthUsersAndMerchant(merchant, superAdminMongoose, Merchant) {
+    try {
+      // 1. Verificar si ya existe un merchant con ese email o code
+      const existingMerchant = await Merchant(superAdminMongoose).findOne({
+        $or: [{ email: merchant.email }, { code: merchant.code }]
+      }).exec();
 
-    return new Promise((resolve, reject) => {
-      mongoseeConnections(
+      if (existingMerchant) {
+        throw new Error("El email o empresa, negocio o usuario ya existen. Pruebe con uno diferente.");
+      }
+
+      // 2. Conexión a la base de datos de usuarios autenticados
+      const authMongoose = await mongoseeConnections(
         `${config.MONGODB_URL}${config.AUTHUSER_DB}?authSource=admin`,
         config.AUTHUSER_DB
-      )
-        .getConnection()
-        .then(authMongoose => {
-          Merchant(superAdminMongoose).findOne(
-            { $or: [{ email: merchant.email }, { code: merchant.code }] },
-            function (err, docs) {
-              if (err) {
-                reject(err);
-              } else {
-                if (docs) {
-                  reject({
-                    error:
-                      "El email o empresa, negocio, usuario ya exiten, pruebe con uno diferente"
-                  });
-                } else {
-                  that
-                    .validateAuthUser(merchant.usernameMerchant, authMongoose)
-                    .then(isValid => {
-                      if (!isValid.error) {
-                        resolve(true);
-                      } else {
-                        reject({
-                          error:
-                            "El email o empresa, negocio, usuario ya exiten, pruebe con uno diferente"
-                        });
-                      }
-                    })
-                    .catch(err => reject(err));
-                }
-              }
-            }
-          );
-        });
-    });
+      ).getConnection();
+
+      // 3. Validar si el usuario ya existe
+      const isValid = await this.validateAuthUser(merchant.usernameMerchant, authMongoose);
+
+      if (isValid && !isValid.error) {
+        return true; // Todo OK
+      } else {
+        throw new Error("El email o empresa, negocio o usuario ya existen. Pruebe con uno diferente.");
+      }
+
+    } catch (error) {
+      // Siempre rechaza con un objeto uniforme
+      throw { error: error.message || "Error inesperado durante la validación." };
+    }
   }
 
   updateExpirationDate(merchant) {
