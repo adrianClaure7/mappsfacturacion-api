@@ -35,7 +35,7 @@ router.post("/getSubsidiaryDataToInvoice", async function (req, res) {
   // Generate control code
   var currentMongoose = req.currentMongoose;
   const body = req.body;
-  if (currentMongoose && body.code && body.productCode) {
+  if (currentMongoose && body.code) {
     try {
       const merchantConfig = await MerchantConfig(currentMongoose).findOne().select('facturacion businessName');
       const subsidiary = await Subsidiary(currentMongoose).findOne({ code: body.code });
