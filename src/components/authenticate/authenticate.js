@@ -89,7 +89,7 @@ class Authenticate {
     });
   }
 
-  createTokenWithUser(user) {
+  createTokenWithUser(user, isExternaAccess = false) {
     let currentUser = {
       id: user.id,
       username: user.username,
@@ -98,9 +98,9 @@ class Authenticate {
       database: user.database,
       expirationDate: user.expirationDate,
       allowWppNotifications: user.allowWppNotifications,
-      customerCode: user.customerCode
+      customerCode: user.customerCode,
     };
-    let tokenInfo = { token: token.generateToken(currentUser) };
+    let tokenInfo = { token: token.generateToken(currentUser, isExternaAccess) };
     console.log("tokenInfo: ", tokenInfo);
     return tokenInfo;
   }
@@ -120,7 +120,7 @@ class Authenticate {
               if (merchantConfig) {
                 tokenUser.allowWppNotifications = merchantConfig.allowWppNotifications;
               }
-              var tokenInfo = this.createTokenWithUser(tokenUser);
+              var tokenInfo = this.createTokenWithUser(tokenUser, true);
               resolve(tokenInfo);
             })
             .catch(err => {
