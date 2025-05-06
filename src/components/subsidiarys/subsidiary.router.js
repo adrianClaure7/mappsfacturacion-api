@@ -139,19 +139,25 @@ router.post("/getByCriteria", function (req, res) {
   }
 });
 
-router.delete("/:subsidiaryID", function (req, res) {
-  var currentMongoose = req.currentMongoose;
-  if (currentMongoose) {
-    Subsidiary(currentMongoose).findByIdAndDelete(
-      req.params.subsidiaryID,
-      (err, subsidiaryDeleted) => {
-        if (err) res.status(403).send(err);
+router.delete("/:subsidiaryID", async function (req, res) {
+  const currentMongoose = req.currentMongoose;
 
-        res.send(subsidiaryDeleted);
-      }
-    );
-  } else {
-    res.status(404).json("Connection mongoose not found");
+  if (!currentMongoose) {
+    return res.status(404).json({ error: "Conexión a la base de datos no encontrada." });
+  }
+
+  try {
+    const subsidiaryDeleted = await Subsidiary(currentMongoose).findByIdAndDelete(req.params.subsidiaryID);
+
+    if (!subsidiaryDeleted) {
+      return res.status(404).json({ error: "Sucursal no encontrada o ya eliminada." });
+    }
+
+    return res.json(subsidiaryDeleted);
+
+  } catch (err) {
+    console.error("Error al eliminar la sucursal:", err);
+    return res.status(403).json({ error: err.message || err });
   }
 });
 

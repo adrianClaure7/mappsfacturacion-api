@@ -15,7 +15,7 @@ router.post("/", function (req, res) {
     const generateJWT = new GenerateJWTs();
     generateJWT.decodeExternalToken(req.body.TokenService)
       .then(tokenData => {
-        ConnectionHandler.getConnectionByDb(tokenData.externalBase)
+        ConnectionHandler.getConnectionByDb(tokenData.database)
           .then(merchantMongoose => {
             ExternalAcces(merchantMongoose).findById(tokenData.externalAccessId)
               .then(externalAccess => {
