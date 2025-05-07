@@ -69,7 +69,7 @@ class GenerateInvoiceOnline {
                 data.cuf = invoice.CUF;
                 const dataToXml = data.tcFactura;
                 dataToXml.tcFacturaDetalle = data.tcFacturaDetalle;
-
+                dataToXml.numeroFactura = dataToXml.numeroFactura || subsidiary.numeroFactura;
 
                 const xmlData = GenerateInvoiceOnline.generateXmlData(dataToXml);
                 dataToXml.leyenda = !dataToXml.leyenda ? subsidiary.leyenda : dataToXml.leyenda;

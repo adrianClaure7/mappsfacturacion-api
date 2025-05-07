@@ -67,7 +67,7 @@ class Servicios {
 
   async anularFactura(merchantMongoose, cuf, user) {
     const emitedInvoice = await EmitedInvoice(merchantMongoose).findOne({ cuf });
-    const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: emitedInvoice.codigoSucursal, codigoPuntoVenta: emitedInvoice.codigoSucursal });
+    const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: emitedInvoice.codigoSucursal, codigoPuntoVenta: emitedInvoice.codigoPuntoVenta });
 
     try {
       const invoice = await GenerateInvoiceOnline.anularFactura(merchantMongoose, emitedInvoice, subsidiary, user.username);
@@ -158,7 +158,7 @@ class Servicios {
 
   async obetenerFactura(merchantMongoose, cuf) {
     const emitedInvoice = await EmitedInvoice(merchantMongoose).findOne({ cuf });
-    const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: emitedInvoice.codigoSucursal, codigoPuntoVenta: emitedInvoice.codigoSucursal });
+    const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: emitedInvoice.codigoSucursal, codigoPuntoVenta: emitedInvoice.codigoPuntoVenta });
     const merchantConfig = await MerchantConfig(merchantMongoose).findOne().select('facturacion');
 
     try {
@@ -172,7 +172,10 @@ class Servicios {
 
   async consultarEstadoFactura(merchantMongoose, cuf) {
     const emitedInvoice = await EmitedInvoice(merchantMongoose).findOne({ cuf });
-    const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: emitedInvoice.codigoSucursal, codigoPuntoVenta: emitedInvoice.codigoSucursal });
+    if (!emitedInvoice) {
+      return { error: "No existe la Factura" };
+    }
+    const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: emitedInvoice.codigoSucursal, codigoPuntoVenta: emitedInvoice.codigoPuntoVenta });
 
     try {
       const invoice = await GenerateInvoiceOnline.consultarEstadoFactura(merchantMongoose, emitedInvoice, subsidiary);
