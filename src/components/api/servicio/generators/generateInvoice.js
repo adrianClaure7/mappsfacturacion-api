@@ -95,6 +95,9 @@ class GenerateInvoiceOnline {
                                         invoice.codigo = result.emitedInvoice.codigo;
                                         invoice.codigoRecepcion = result.emitedInvoice.codigoRecepcion;
                                         invoice.listaMensajes = result.emitedInvoice.listaMensajes || [];
+                                        invoice.nitEmisor = result.emitedInvoice.nitEmisor;
+                                        invoice.numeroFactura = result.emitedInvoice.numeroFactura;
+                                        invoice.id = result.emitedInvoice._id;
                                     }
                                     invoice.emailToSend = data.tcFactura.correoCliente;
                                     if (!invoice.id && !invoice._id) {
@@ -124,6 +127,9 @@ class GenerateInvoiceOnline {
                                     invoice.codigo = result.emitedInvoice.codigo;
                                     invoice.codigoRecepcion = result.emitedInvoice.codigoRecepcion;
                                     invoice.listaMensajes = result.emitedInvoice.listaMensajes || [];
+                                    invoice.nitEmisor = result.emitedInvoice.nitEmisor;
+                                    invoice.numeroFactura = result.emitedInvoice.numeroFactura;
+                                    invoice.id = result.emitedInvoice._id;
                                 }
                                 invoice.emailToSend = data.tcFactura.correoCliente;
                                 if (!invoice.id && !invoice._id) {
