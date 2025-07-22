@@ -34,7 +34,7 @@ class Servicios {
     const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: invoiceData.codigoSucursal, codigoPuntoVenta: invoiceData.codigoPuntoVenta });
 
     try {
-      const invoiceData = await GenerateInvoiceOnline.generateInvoice(merchantMongoose, invoiceData, subsidiary, user.username);
+      const newInvoiceData = await GenerateInvoiceOnline.generateInvoice(merchantMongoose, invoiceData, subsidiary, user.username);
       repeatTimes--;
 
       if (repeatTimes > 0) {
@@ -44,7 +44,7 @@ class Servicios {
         body.repeatTimes = repeatTimes;
         return this.passTestEmitirFacturaOnline(merchantMongoose, user, body);
       } else {
-        return invoiceData;
+        return newInvoiceData;
       }
     } catch (err) {
       return { error: err };
