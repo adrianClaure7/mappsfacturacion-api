@@ -190,7 +190,7 @@ router.post("/recepcionFactura", async (req, res) => {
     };
 
     try {
-      const subsidiary = await Subsidiary(currentMongoose).findOneAndUpdate(filterSubsidiary, { $inc: { numeroFactura: 1 } });
+      const subsidiary = await Subsidiary(currentMongoose).findOneAndUpdate(filterSubsidiary, { $inc: { numeroFactura: 1 } }).lean();
 
       if (!subsidiary) {
         return res.status(404).json({ error: "Subsidiary not found" });
