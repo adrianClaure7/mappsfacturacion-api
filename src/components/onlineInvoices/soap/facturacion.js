@@ -39,7 +39,7 @@ class Facturacion {
                             codigoEmision: 1, // Online=1
                             codigoModalidad,
                             codigoDocumentoSector: data.codigoDocumentoSector,
-                            cuis: subsidiary.RespuestaCuis.codigo,
+                            cuis: subsidiary ? subsidiary.RespuestaCuis.codigo : data.cuis,
                             cufd: data.cufd,
                             tipoFacturaDocumento: data.tipoFacturaDocumento,
                             codigoMotivo: data.codigoMotivo || 1,
@@ -716,62 +716,40 @@ class Facturacion {
         })
     }
 
-    reversionAnulacionFactura(currentMongoose, data, username = undefined) {
-        return new Promise((resolve, reject) => {
-            var codigoSucursal = data && data.codigoSucursal ? `${data.codigoSucursal}` : '0';
-            MerchantConfig(currentMongoose).findOne().select().then(merchantConfig => {
-                const codigoAmbiente = merchantConfig.facturacion ? `${merchantConfig.facturacion.codigoAmbiente}` : '2';
-                const soapRoute = codigoAmbiente == '2' ? INVOICE_ROUTES.PURCHASES_SALES : INVOICE_ROUTES.PURCHASES_SALES_PROD;
-                soap.createClientAsync(soapRoute).then((client) => {
-                    InvoiceToken(currentMongoose).findOne().select().then(invoiceToken => {
-                        var SolicitudServicioReversionAnulacionFactura = {
-                            codigoAmbiente,
-                            codigoSucursal,
-                            codigoPuntoVenta: data.codigoPuntoVenta || 0,
-                            codigoSistema: invoiceToken.systemCode,
-                            nit: merchantConfig.facturacion ? `${merchantConfig.facturacion.nitEmisor}` : '',
-                            codigoEmision: 1, // Online=1
-                            codigoDocumentoSector: data.codigoDocumentoSector,
-                            cuis: data.cuis,
-                            cufd: data.cufd,
-                            tipoFacturaDocumento: data.tipoFacturaDocumento,
-                            codigoModalidad: 2,
-                            cuf: data.cuf
-                        }
+    async reversionAnulacionFactura(currentMongoose, data, username = undefined) {
+        try {
+            const codigoSucursal = data?.codigoSucursal?.toString() || '0';
+            const merchantConfig = await MerchantConfig(currentMongoose).findOne().select();
+            const codigoAmbiente = merchantConfig.facturacion ? `${merchantConfig.facturacion.codigoAmbiente}` : '2';
+            const soapRoute = codigoAmbiente == '2' ? INVOICE_ROUTES.PURCHASES_SALES : INVOICE_ROUTES.PURCHASES_SALES_PROD;
+            const client = await soap.createClientAsync(soapRoute);
+            const invoiceToken = await InvoiceToken(currentMongoose).findOne().select();
 
-                        client.reversionAnulacionFactura({ SolicitudServicioReversionAnulacionFactura }, (error, result) => {
-                            if (error) {
-                                reject({ error: error ? error.message : error })
-                            } else {
-                                if (result.RespuestaServicioFacturacion.codigoEstado == 907 && result.RespuestaServicioFacturacion.codigoDescripcion == 'REVERSION DE ANULACION CONFIRMADA'
-                                ) {
-                                    EmitedInvoice(currentMongoose).findByIdAndUpdate(data._id, { canceled: false, codigoMotivo: null, updatedBy: username }, {}, (err, resp) => {
-                                        resp.merchantConfig = merchantConfig;
-                                        resolve(resp);
-                                    });
-                                } else {
-                                    var error = result.RespuestaServicioFacturacion.codigoDescripcion;
+            const SolicitudServicioReversionAnulacionFactura = {
+                codigoAmbiente, codigoSucursal, codigoPuntoVenta: data.codigoPuntoVenta || 0, codigoSistema: invoiceToken.systemCode,
+                nit: merchantConfig.facturacion ? `${merchantConfig.facturacion.nitEmisor}` : '', codigoEmision: 1, // Online=1
+                codigoDocumentoSector: data.codigoDocumentoSector, cuis: data.cuis, cufd: data.cufd,
+                tipoFacturaDocumento: data.tipoFacturaDocumento, codigoModalidad: 2, cuf: data.cuf
+            };
 
-                                    if (result.RespuestaServicioFacturacion.mensajesList) {
-                                        result.RespuestaServicioFacturacion.mensajesList.forEach(message => {
-                                            error += `\n __Error Message: ${message.descripcion}`
-                                        });
-                                    }
-                                    reject({ error: error })
-                                }
-                            }
-                        }, {}, { apikey: `TokenApi ${invoiceToken.token}` });
+            const [result] = await client.reversionAnulacionFacturaAsync({ SolicitudServicioReversionAnulacionFactura }, {}, { apikey: `TokenApi ${invoiceToken.token}` });
 
-                    }).catch(err => {
-                        reject(err);
-                    })
-                }).catch(err => {
-                    reject(err);
-                })
-            }).catch(err => {
-                reject(err);
-            })
-        })
+            if (result.RespuestaServicioFacturacion.codigoEstado == 907 && result.RespuestaServicioFacturacion.codigoDescripcion == 'REVERSION DE ANULACION CONFIRMADA') {
+                const updatedInvoice = await EmitedInvoice(currentMongoose).findByIdAndUpdate(data._id, { canceled: false, codigoMotivo: null, updatedBy: username }, { new: true }).lean();
+                updatedInvoice.merchantConfig = merchantConfig;
+                return updatedInvoice;
+            } else {
+                let error = result.RespuestaServicioFacturacion.codigoDescripcion;
+                if (result.RespuestaServicioFacturacion.mensajesList) {
+                    result.RespuestaServicioFacturacion.mensajesList.forEach(message => {
+                        error += `\n __Error Message: ${message.descripcion}`;
+                    });
+                }
+                throw new Error(error);
+            }
+        } catch (err) {
+            throw err;
+        }
     }
 
 
@@ -788,7 +766,7 @@ class Facturacion {
                     } else {
                         resolve(result);
                     }
-                }).catch(() => {
+                }).catch((error) => {
                     this.passTestAnularFacturasActuales(currentMongoose, username, repeatTimes, emitedInvoices)
                 })
             } else if (!emitedInvoices) {
@@ -804,7 +782,7 @@ class Facturacion {
                             } else {
                                 resolve(result);
                             }
-                        }).catch(() => {
+                        }).catch((error) => {
                             this.passTestAnularFacturasActuales(currentMongoose, username, currentRepeatTimes, emitedInvoices);
                         })
                     } else {
