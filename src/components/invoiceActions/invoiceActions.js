@@ -206,8 +206,9 @@ router.post("/recepcionFactura", async (req, res) => {
       data.emitedInvoice.cuf = data.emitedInvoice.CUF;
       data.emitedInvoice.numeroFactura = subsidiary.numeroFactura;
 
-      const emitedInvoice = new EmitedInvoice(currentMongoose)(data.emitedInvoice);
       const result = await GenerateInvoiceOnline.generateXmlAndPdfFromEmitedInvoice(currentMongoose, data.emitedInvoice, subsidiary);
+      data.emitedInvoice.fechaEmision =  data.emitedInvoice.fechaEmision + 'T' + data.emitedInvoice.horaEmision ;
+      const emitedInvoice = new EmitedInvoice(currentMongoose)(data.emitedInvoice);
       const dataBase = await GenerateInvoiceOnline.xmlToBase64(result.xmlData, emitedInvoice.cuf);
 
       Object.assign(data.emitedInvoice, {
@@ -376,7 +377,7 @@ router.post("/recepcionPaqueteFactura", async (req, res) => {
     const result = await facturacion.recepcionPaqueteFactura(currentMongoose, dataInfo);
 
     // Update status for emitted invoices
-    const emitedInvoiceIds = data.invoices.map(x => mongoose.Types.ObjectId(x.emitedInvoice._id));
+    const emitedInvoiceIds = data.invoices.map(x => new mongoose.Types.ObjectId(x.emitedInvoice._id));
     await EmitedInvoice(currentMongoose).updateMany(
       { _id: { $in: emitedInvoiceIds } },
       { $set: { status: 1 } }

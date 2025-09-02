@@ -4,6 +4,7 @@ const moment = require('moment');
 
 var soap = require('soap');
 var INVOICE_ROUTES = require("../../../commons/invoiceRoutes");
+const FACTURACION_METODOS = require("../../../commons/facturacionMetodos");
 const Subsidiary = require("../../subsidiarys/subsidiary.model");
 const EmitedInvoice = require("../../emitedInvoices/emitedInvoice.model");
 
@@ -281,6 +282,7 @@ class Facturacion {
     }
 
 
+
     async recepcionPaqueteFactura(currentMongoose, data) {
         try {
             if (!currentMongoose) throw new Error("Mongoose connection not found");
@@ -311,7 +313,7 @@ class Facturacion {
                 codigoSistema: invoiceToken.systemCode,
                 nit: merchantConfig.facturacion?.nitEmisor?.toString() || '',
                 codigoEmision: 2, // Online=1
-                codigoModalidad: merchantConfig.facturacion?.codigoModalidad?.toString() || '1',
+                codigoModalidad: merchantConfig.facturacion?.codigoModalidad?.toString() || `${FACTURACION_METODOS.ELECTRONICA_ONLINE.code}`,
                 codigoDocumentoSector: data.codigoDocumentoSector,
                 cuis: data.cuis,
                 cufd: data.cufd,
@@ -567,6 +569,7 @@ class Facturacion {
 
                 const emitedInvoiceData = Facturacion.generateEmitedInvoice(data, subsidiary, username);
                 emitedInvoiceData.emailToSend = data.tcFactura.correoCliente;
+                emitedInvoiceData.cafc = subsidiary.cafc;
 
                 const emitedInvoice = new EmitedInvoice(currentMongoose)(emitedInvoiceData);
                 emitedInvoice.status = 0;

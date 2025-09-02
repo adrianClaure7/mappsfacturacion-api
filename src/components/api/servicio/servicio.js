@@ -34,6 +34,7 @@ class Servicios {
     const subsidiary = await Subsidiary(merchantMongoose).findOne({ codigoSucursal: invoiceData.codigoSucursal, codigoPuntoVenta: invoiceData.codigoPuntoVenta });
 
     try {
+      invoiceData.tcFactura.numeroFactura = subsidiary.numeroFactura;
       const newInvoiceData = await GenerateInvoiceOnline.generateInvoice(merchantMongoose, invoiceData, subsidiary, user.username);
       repeatTimes--;
 
