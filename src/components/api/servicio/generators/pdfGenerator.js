@@ -36,8 +36,15 @@ class PDFGenerator {
             doc.text(`No Punto de Venta - ${data.codigoPuntoVenta || 0}`, margin, currentY);
             currentY += 5;
 
-            doc.text(`${data.direccion || ''}`, margin, currentY);
-            currentY += 5;
+            const direccion = data.direccion || '';
+            const maxCharsPerLine = 60;
+            let startIndex = 0;
+            while (startIndex < direccion.length) {
+                const line = direccion.substring(startIndex, startIndex + maxCharsPerLine);
+                doc.text(line, margin, currentY);
+                currentY += 5;
+                startIndex += maxCharsPerLine;
+            }
 
             doc.text(`Telefono: ${data.telefono}`, margin, currentY);
             currentY += 5;
@@ -229,6 +236,9 @@ class PDFGenerator {
                 doc.setFillColor(255, 0, 0, 0.2);
                 doc.setFontSize(50);
                 doc.text("ANULADA", margin, currentY, { width: 133 });
+                doc.setFontSize(10);
+                doc.setFillColor(0, 0, 0, 0);
+                doc.setFillColor(0, 0, 0, 0);
             }
         });
     }

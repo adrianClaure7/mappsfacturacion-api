@@ -201,7 +201,6 @@ router.post("/recepcionFactura", async (req, res) => {
       dataInvoice.tcFactura.horaEmision = data.horaEnvio;
       data.emitedInvoice.fechaEnvio = data.fechaEnvio;
       data.emitedInvoice.horaEnvio = data.horaEnvio;
-      subsidiary.numeroFactura--;
       data.emitedInvoice.CUF = GenerateInvoiceOnline.generateCuf(dataInvoice, subsidiary);
       data.emitedInvoice.cuf = data.emitedInvoice.CUF;
       data.emitedInvoice.numeroFactura = subsidiary.numeroFactura;
@@ -234,7 +233,7 @@ router.post("/recepcionFactura", async (req, res) => {
           const pdfData = await PDFGenerator.createInvoicePDF(resp);
           const emitedInvoiceResponse = Utilities.copyObject(resp);
           emitedInvoiceResponse.pdfBase64 = pdfData.pdfBase64;
-          emitedInvoiceResponse.xmlData = data.xml;
+          emitedInvoiceResponse.xmlData = result.xmlData;
 
           await mailer.sendEmitedInvoice(currentMongoose, emitedInvoiceResponse);
           res.send(resp);

@@ -15,7 +15,7 @@ class Mailer {
         .select("email businessName imgUrl phone iso2");
 
       const mailOptions = {
-        from: "facturatelocompro@gmail.com", // sender address
+        from: "mappsbo2@gmail.com", // sender address
         to: emitedInvoice.emailToSend, // list of receivers
         subject: `${merchantConfig.businessName}: Notificación de emisión de factura`, // Subject line
         html: `
@@ -74,14 +74,16 @@ class Mailer {
       }
 
       const transporter = nodemailer.createTransport({
-        service: process.env.GOOGLE_GMAIL_SERVICE,
+        service: "gmail",
         auth: {
-          type: process.env.GOOGLE_AUTH_TYPE,
-          user: process.env.GOOGLE_AUTH_USER,
-          clientId: process.env.GOOGLE_AUTH_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_AUTH_CLIENT_SECRET,
-          refreshToken: mailerConfig.refreshToken,
-        },
+          type: "OAuth2",
+          user: "mappsbo2@gmail.com",
+          clientId:
+            "347802794332-m58tfsrf7pghsu5bq6s461cqnqcpj09j.apps.googleusercontent.com",
+          clientSecret: "AJKJb1CGsB92qk7UyELW7YL2",
+          refreshToken:
+            "1//04XgSx_-5He1GCgYIARAAGAQSNwF-L9IrWOorOgNtXb5_GTSSef4yGCyjff0nGiwgpVLliBxkA0z7_By2B-pJxVniD4sKibPJ8Ek"
+        }
       });
 
       const info = await transporter.sendMail(mailOptions);
