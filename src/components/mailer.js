@@ -78,11 +78,9 @@ class Mailer {
         auth: {
           type: "OAuth2",
           user: "mappsbo2@gmail.com",
-          clientId:
-            "347802794332-m58tfsrf7pghsu5bq6s461cqnqcpj09j.apps.googleusercontent.com",
-          clientSecret: "AJKJb1CGsB92qk7UyELW7YL2",
-          refreshToken:
-            "1//04XgSx_-5He1GCgYIARAAGAQSNwF-L9IrWOorOgNtXb5_GTSSef4yGCyjff0nGiwgpVLliBxkA0z7_By2B-pJxVniD4sKibPJ8Ek"
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
         }
       });
 
