@@ -49,6 +49,8 @@ var EmitedInvoiceSchema = new Schema({
   tipoCambio: Number,
   montoTotalMoneda: Number,
   descuentoAdicional: Number,
+  montoGiftCard: Number,
+  numeroTarjeta: Number,
   usuario: String,
   codigoDocumentoSector: Number,
   tipoFacturaDocumento: Number,

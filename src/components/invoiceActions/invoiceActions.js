@@ -30,6 +30,7 @@ const Utilities = require("../../commons/utilities");
 const InvoiceGenerator = require("./invoiceGenerator");
 const logger = require("../../commons/logger");
 const ToGenerateInvoice = require("../toGenerateInvoices/toGenerateInvoice.model");
+const InvoiceXmlSign = require("../invoiceXmlSigns/invoiceXmlSign.model");
 
 router.post("/getSubsidiaryDataToInvoice", async function (req, res) {
   // Generate control code
@@ -84,14 +85,9 @@ router.get("/getInvoiceInfoByOrderId/:orderId", function (req, res) {
                 var codigos = new Sincronizacion({});
                 codigos.getMetodosDePagoDisponibles(currentMongoose, subsidiary).then(paymentMethods => {
                   data.paymentMethods = paymentMethods;
-                  codigos.getLeyenda(currentMongoose, subsidiary, order.orderDetails[0].economicActivity).then(leyenda => {
-                    data.leyenda = leyenda;
-                    codigos.getParametricaTipoDocumentoIdentidad(currentMongoose, subsidiary).then(listaTiposDocumentoIdentidad => {
-                      data.listaTiposDocumentoIdentidad = listaTiposDocumentoIdentidad || [];
-                      res.json(data);
-                    }).catch(err => {
-                      res.status(403).send(err);
-                    })
+                  codigos.getParametricaTipoDocumentoIdentidad(currentMongoose, subsidiary).then(listaTiposDocumentoIdentidad => {
+                    data.listaTiposDocumentoIdentidad = listaTiposDocumentoIdentidad || [];
+                    res.json(data);
                   }).catch(err => {
                     res.status(403).send(err);
                   })
@@ -206,7 +202,13 @@ router.post("/recepcionFactura", async (req, res) => {
       data.emitedInvoice.numeroFactura = subsidiary.numeroFactura;
 
       const result = await GenerateInvoiceOnline.generateXmlAndPdfFromEmitedInvoice(currentMongoose, data.emitedInvoice, subsidiary);
-      data.emitedInvoice.fechaEmision =  data.emitedInvoice.fechaEmision + 'T' + data.emitedInvoice.horaEmision ;
+      data.emitedInvoice.fechaEmision = data.emitedInvoice.fechaEmision + 'T' + data.emitedInvoice.horaEmision;
+
+      if (subsidiary.modalidad == 1) {
+        const invoiceXmlSign = await InvoiceXmlSign(currentMongoose).findOne().lean();
+        result.xmlData = await GenerateInvoiceOnline.signXML(result.xmlData, invoiceXmlSign);
+      }
+
       const emitedInvoice = new EmitedInvoice(currentMongoose)(data.emitedInvoice);
       const dataBase = await GenerateInvoiceOnline.xmlToBase64(result.xmlData, emitedInvoice.cuf);
 

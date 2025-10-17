@@ -124,32 +124,34 @@ class PDFGenerator {
             let subTotal = 0;
 
             (data.tcFacturaDetalle || data.detalle).forEach(element => {
-                subTotal += Utilities.convertToFloat2(Utilities.convertToFloat2(element.precioUnitario) * Utilities.convertToFloat2(element.cantidad));
+                subTotal += Utilities.convertToFloat2((Utilities.convertToFloat2(element.precioUnitario * data.tipoCambio) * Utilities.convertToFloat2(element.cantidad)) - (element.montoDescuento * data.tipoCambio));
 
                 tableData.push({
                     codigoProducto: element.codigoProducto,
                     descripcion: element.descripcion,
                     cantidad: `${Utilities.convertToFloat2(element.cantidad)}`,
-                    precioUnitario: `${Utilities.convertToFloat2(element.precioUnitario).toFixed(2)}`,
-                    subTotal: `${(Utilities.convertToFloat2(element.precioUnitario) * Utilities.convertToFloat2(element.cantidad)).toFixed(2)}`
+                    precioUnitario: `${Utilities.convertToFloat2(element.precioUnitario * data.tipoCambio).toFixed(2)}`,
+                    montoDescuento: `${Utilities.convertToFloat2(element.montoDescuento * data.tipoCambio).toFixed(2)}`,
+                    subTotal: `${Utilities.convertToFloat2((Utilities.convertToFloat2(element.precioUnitario * data.tipoCambio) * Utilities.convertToFloat2(element.cantidad)) - (element.montoDescuento * data.tipoCambio)).toFixed(2)}`
                 });
             });
-
+            const total = Utilities.convertToFloat2(subTotal - (data.descuentoAdicional * data.tipoCambio));
             // Add SUBTOTAL and other values in rows with merged columns for CANTIDAD and PRECIO UNITARIO
             tableData.push({ codigoProducto: "", descripcion: "", cantidad: "SUBTOTAL Bs.", precioUnitario: "", subTotal: `${subTotal.toFixed(2)}` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "DESCUENTO Bs.", precioUnitario: "", subTotal: `0.00` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "TOTAL Bs.", precioUnitario: "", subTotal: `${subTotal.toFixed(2)}` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO GIFT CARD Bs.", precioUnitario: "", subTotal: `0.00` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO A PAGAR Bs.", precioUnitario: "", subTotal: `${subTotal.toFixed(2)}` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "IMPORTE BASE CRÉDITO FISCAL Bs.", precioUnitario: "", subTotal: `${subTotal.toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "DESCUENTO Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(data.descuentoAdicional * data.tipoCambio).toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "TOTAL Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total).toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO GIFT CARD Bs.", precioUnitario: "", subTotal: `${(data.montoGiftCard * data.tipoCambio).toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO A PAGAR Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total - (data.montoGiftCard * data.tipoCambio)).toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "IMPORTE BASE CRÉDITO FISCAL Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total - (data.montoGiftCard * data.tipoCambio)).toFixed(2)}` });
 
             const totalRowCount = tableData.length;
 
             // Adjusted column widths for 80% width of PDF
             const columnWidths = {
-                0: { cellWidth: tableWidth * 0.15 }, // CODIGO
-                1: { cellWidth: tableWidth * 0.35 }, // DESCRIPCIÓN
-                2: { cellWidth: tableWidth * 0.25 }, // CANTIDAD
+                0: { cellWidth: tableWidth * 0.10 }, // CODIGO
+                1: { cellWidth: tableWidth * 0.30 }, // DESCRIPCIÓN
+                2: { cellWidth: tableWidth * 0.20 }, // CANTIDAD
+                2: { cellWidth: tableWidth * 0.20 }, // CANTIDAD
                 3: { cellWidth: tableWidth * 0.25, halign: 'right' } // SUBTOTAL (right-aligned)
             };
 
@@ -157,7 +159,7 @@ class PDFGenerator {
             doc.autoTable({
                 startY: currentY,
                 margin: { left: leftMargin }, // Align table with Nombre/Razón Social X position
-                head: [['CODIGO', 'DESCRIPCIÓN', 'CANTIDAD', 'PRECIO UNITARIO', 'SUBTOTAL']],
+                head: [['CODIGO', 'DESCRIPCIÓN', 'CANTIDAD', 'PRECIO UNITARIO', 'DESCUENTO', 'SUBTOTAL']],
                 body: tableData.map((item, index) => {
                     if (index < totalRowCount - 6) {
                         // Regular details section (before totals)
@@ -166,18 +168,19 @@ class PDFGenerator {
                             { content: item.descripcion, styles: { lineWidth: 0.1 } },
                             item.cantidad,
                             item.precioUnitario,
+                            item.montoDescuento,
                             { content: item.subTotal, styles: { halign: 'right' } }
                         ];
                     } else {
                         // Totals section: Merge CANTIDAD and PRECIO UNITARIO columns
                         return [
                             {
-                                content: index === totalRowCount - 3 ? `Son: ${NumeroALetras.numeroALetras(subTotal)}` : '',
-                                colSpan: 2,
+                                content: index === totalRowCount - 3 ? `Son: ${NumeroALetras.numeroALetras(Utilities.convertToFloat2(total - (data.montoGiftCard * data.tipoCambio)))}` : '',
+                                colSpan: 3,
                                 styles: { halign: 'center', fontStyle: 'bold', lineWidth: 0, lineColor: [0, 0, 0], borderTop: true } // Add top border here
                             },
                             { content: item.cantidad, colSpan: 2, styles: { halign: 'center', lineWidth: 0.1, fontStyle: 'bold' } }, // Merged CANTIDAD and PRECIO UNITARIO
-                            { content: item.subTotal, styles: { halign: 'right', lineWidth: 0.1 } } // Right-aligned SUBTOTAL column
+                            { content: item.subTotal, styles: { halign: 'right', lineWidth: 0.1, fontStyle: (index === totalRowCount - 1 || index === totalRowCount - 2) ? 'bold' : 'normal' } } // Right-aligned SUBTOTAL column
                         ];
                     }
                 }),

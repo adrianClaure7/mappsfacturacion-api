@@ -326,7 +326,7 @@ class GenerateInvoiceOnline {
     static generateInvoiceXML(data, subsidiary, cuf) {
         // TODO: Falta certificacion
 
-        var detalle = GenerateInvoiceOnline.buildDetailInvoice(data.tcFacturaDetalle);
+        var detalle = GenerateInvoiceOnline.buildDetailInvoice(data.tcFacturaDetalle, data.tipoCambio || 1);
 
         var modalidadFacturacion = 'facturaComputarizadaCompraVenta';
 
@@ -354,14 +354,14 @@ class GenerateInvoiceOnline {
            <complemento xsi:nil="true"/>
            <codigoCliente>${data.codigoCliente}</codigoCliente>
            <codigoMetodoPago>${data.codigoMetodoPago}</codigoMetodoPago>
-           <numeroTarjeta xsi:nil="true"/>
-           <montoTotal>${Utilities.convertToFloat2(data.montoTotal).toFixed(2)}</montoTotal>
-           <montoTotalSujetoIva>${Utilities.convertToFloat2(data.montoTotalSujetoIva).toFixed(2)}</montoTotalSujetoIva>
+           ${data.numeroTarjeta ? `<numeroTarjeta>${data.numeroTarjeta}</numeroTarjeta>` : `<numeroTarjeta xsi:nil="true"/>`}
+           <montoTotal>${Utilities.convertToFloat2(data.montoTotal * data.tipoCambio).toFixed(2)}</montoTotal>
+           <montoTotalSujetoIva>${Utilities.convertToFloat2((data.montoTotalSujetoIva - (data.montoGiftCard ? data.montoGiftCard : 0)) * data.tipoCambio).toFixed(2)}</montoTotalSujetoIva>
            <codigoMoneda>${data.codigoMoneda}</codigoMoneda>
            <tipoCambio>${data.tipoCambio}</tipoCambio>
            <montoTotalMoneda>${Utilities.convertToFloat2(data.montoTotal).toFixed(2)}</montoTotalMoneda>
-           <montoGiftCard xsi:nil="true"/>
-           <descuentoAdicional>0</descuentoAdicional>
+           ${data.montoGiftCard ? `<montoGiftCard>${Utilities.convertToFloat2(data.montoGiftCard * data.tipoCambio).toFixed(2)}</montoGiftCard>` : `<montoGiftCard xsi:nil="true"/>`}
+           <descuentoAdicional>${Utilities.convertToFloat2(data.descuentoAdicional * data.tipoCambio)}</descuentoAdicional>
             ${data.codigoExcepcion ? `<codigoExcepcion>${data.codigoExcepcion}</codigoExcepcion>` : ' <codigoExcepcion xsi:nil="true"/>'}
             ${subsidiary.cafc ? `<cafc>${subsidiary.cafc}</cafc>` : '<cafc xsi:nil="true"/>'}
            <leyenda>${data.leyenda || subsidiary.leyenda}</leyenda>
@@ -376,10 +376,10 @@ class GenerateInvoiceOnline {
         }
     }
 
-    static buildDetailInvoice(tcFacturaDetalle) {
+    static buildDetailInvoice(tcFacturaDetalle, tipoCambio = 1) {
         var detalle = ``;
         tcFacturaDetalle.forEach(detail => {
-            detalle += `<detalle><actividadEconomica>${detail.actividadEconomica || 1}</actividadEconomica><codigoProductoSin>${detail.codigoProductoSiat || detail.codigoProductoSin}</codigoProductoSin><codigoProducto>${detail.codigoProducto}</codigoProducto><descripcion>${detail.descripcion}</descripcion><cantidad>${detail.cantidad}</cantidad><unidadMedida>${detail.unidadMedida || 58}</unidadMedida><precioUnitario>${Utilities.convertToFloat2(detail.precioUnitario).toFixed(2)}</precioUnitario><montoDescuento>${detail.montoDescuento || 0}</montoDescuento><subTotal>${((Utilities.convertToFloat2(detail.precioUnitario) * Utilities.convertToFloat2(detail.cantidad)) - (Utilities.convertToFloat2(detail.montoDescuento || 0))).toFixed(2)}</subTotal><numeroSerie>${detail.numeroSerie || 0}</numeroSerie><numeroImei xsi:nil="true"/></detalle>`
+            detalle += `<detalle><actividadEconomica>${detail.actividadEconomica || 1}</actividadEconomica><codigoProductoSin>${detail.codigoProductoSiat || detail.codigoProductoSin}</codigoProductoSin><codigoProducto>${detail.codigoProducto}</codigoProducto><descripcion>${detail.descripcion}</descripcion><cantidad>${detail.cantidad}</cantidad><unidadMedida>${detail.unidadMedida || 58}</unidadMedida><precioUnitario>${Utilities.convertToFloat2(detail.precioUnitario * tipoCambio).toFixed(2)}</precioUnitario><montoDescuento>${Utilities.convertToFloat2(detail.montoDescuento * tipoCambio).toFixed(2)}</montoDescuento><subTotal>${((Utilities.convertToFloat2(detail.precioUnitario * tipoCambio) * Utilities.convertToFloat2(detail.cantidad)) - (Utilities.convertToFloat2(detail.montoDescuento * tipoCambio || 0))).toFixed(2)}</subTotal><numeroSerie>${detail.numeroSerie || 0}</numeroSerie><numeroImei xsi:nil="true"/></detalle>`
         });
 
         return detalle;
@@ -438,7 +438,6 @@ class GenerateInvoiceOnline {
             horaEmision = moment(data.fechaEmision).tz("America/La_Paz").format('HH:mm:ss.SSS');
             fechaEmision = moment(data.fechaEmision).tz("America/La_Paz").format('YYYY-MM-DD');
         }
-
         return {
             nitEmisor: data.nitEmisor,
             razonSocialEmisor: data.razonSocialEmisor,
@@ -461,6 +460,9 @@ class GenerateInvoiceOnline {
             codigoSucursal: data.codigoSucursal,
             usuario: data.usuario || 'Usuario',
             leyenda: data.leyenda,
+            descuentoAdicional: data.descuentoAdicional,
+            numeroTarjeta: data.numeroTarjeta,
+            montoGiftCard: data.montoGiftCard,
             tcFacturaDetalle: data.tcFacturaDetalle || data.detalle
         }
     }

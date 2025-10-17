@@ -173,12 +173,7 @@ class Sincronizacion {
       this.getLista('ParametricaTipoMetodoPago', currentMongoose, subsidiary, 'ListaParametricas', 'listaCodigos').then(result => {
         let list = [];
         if (result && result.length > 0) {
-          list = result.filter(x => {
-            return x.codigoClasificador == 1
-              // || x.codigoClasificador == 5
-              || x.codigoClasificador == 7
-              || x.codigoClasificador == 33;
-          })
+          list = result;
         }
         list.sort((a, b) => a.codigoClasificador - b.codigoClasificador);
         resolve(list);
