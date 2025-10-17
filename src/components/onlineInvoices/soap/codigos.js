@@ -5,6 +5,7 @@ var InvoiceToken = require("../../invoiceTokens/invoiceToken.model");
 var soap = require('soap');
 var INVOICE_ROUTES = require("../../../commons/invoiceRoutes");
 const Subsidiary = require("../../subsidiarys/subsidiary.model");
+const Cufd = require("../../cufds/cufd.model");
 var $q = require("q");
 
 class Codigos {
@@ -142,6 +143,18 @@ class Codigos {
                                 reject({ error: error ? error.message : error })
                             } else {
                                 await Subsidiary(currentMongoose).updateOne({ codigoPuntoVenta: Utilities.convertToNumberIfNeeded(SolicitudCufd.codigoPuntoVenta), codigoSucursal: Utilities.convertToNumberIfNeeded(codigoSucursal) }, { RespuestaCufd: result.RespuestaCufd });
+                                if (result && result.RespuestaCufd) {
+                                    const cufdData = {
+                                        codigo: result.RespuestaCufd.codigo,
+                                        codigoControl: result.RespuestaCufd.codigoControl,
+                                        direccion: result.RespuestaCufd.direccion,
+                                        fechaVigencia: result.RespuestaCufd.fechaVigencia,
+                                        codigoPuntoVenta: Utilities.convertToNumberIfNeeded(SolicitudCufd.codigoPuntoVenta),
+                                        codigoSucursal: Utilities.convertToNumberIfNeeded(codigoSucursal)
+                                    };
+                                    await Cufd(currentMongoose).create(cufdData);
+                                }
+
                                 resolve(result);
                             }
                         }, {}, { apikey: `TokenApi ${invoiceToken.token}` });

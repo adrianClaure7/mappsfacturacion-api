@@ -359,6 +359,13 @@ router.post("/recepcionPaqueteFactura", async (req, res) => {
     const merchantConfig = await MerchantConfig(currentMongoose).findOne().select();
     data.merchantConfig = merchantConfig;
 
+    data.invoices = data.invoices.map(x => {
+      const xmlData = GenerateInvoiceOnline.generateXmlData(x.emitedInvoice);
+      x.xml = GenerateInvoiceOnline.generateInvoiceXML(xmlData, x.emitedInvoice, x.emitedInvoice.cuf);
+      return x;
+    })
+
+
     // Generate invoice files
     const generatedInvoices = await facturacion.generateInvoiceFiles(data, folderName);
     const zipName = `${folderName}.zip`;

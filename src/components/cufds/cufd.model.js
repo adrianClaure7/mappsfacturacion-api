@@ -6,6 +6,7 @@ var Schema = mongoose.Schema;
 // create a schema
 var CufdSchema = new Schema({
   codigoSucursal: String,
+  codigoPuntoVenta: String,
   codigo: String,
   codigoControl: String,
   direccion: String,

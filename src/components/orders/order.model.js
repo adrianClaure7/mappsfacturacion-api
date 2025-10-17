@@ -89,7 +89,7 @@ const OrderSchema = new Schema({
   orderGeneratorId: String,
   descuentoAdicional: Number,
   montoGiftCard: Number,
-  numeroTarjeta: Number,
+  numeroTarjeta: String,
   codigoMoneda: Number,
   tipoCambio: Number,
   extraData: { ntra: String },

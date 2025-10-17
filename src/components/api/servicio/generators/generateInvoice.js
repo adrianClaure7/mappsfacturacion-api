@@ -330,7 +330,7 @@ class GenerateInvoiceOnline {
 
         var modalidadFacturacion = 'facturaComputarizadaCompraVenta';
 
-        if (subsidiary && subsidiary.modalidad == 1) {
+        if (subsidiary && (subsidiary.modalidad == 1 || subsidiary.codigoModalidad == 1)) {
             modalidadFacturacion = 'facturaElectronicaCompraVenta';
         }
 
@@ -343,7 +343,7 @@ class GenerateInvoiceOnline {
            <telefono>${data.telefono}</telefono>
            <numeroFactura>${data.numeroFactura || subsidiary.numeroFactura}</numeroFactura>
            <cuf>${cuf}</cuf>
-           <cufd>${subsidiary.RespuestaCufd ? subsidiary.RespuestaCufd.codigo : ''}</cufd>
+           <cufd>${subsidiary.RespuestaCufd ? subsidiary.RespuestaCufd.codigo : subsidiary.cufd ? subsidiary.cufd : ''}</cufd>
            <codigoSucursal>${data.codigoSucursal}</codigoSucursal>
            <direccion>${data.direccion}</direccion>
            <codigoPuntoVenta>${subsidiary.codigoPuntoVenta || 0}</codigoPuntoVenta>
@@ -463,7 +463,8 @@ class GenerateInvoiceOnline {
             descuentoAdicional: data.descuentoAdicional,
             numeroTarjeta: data.numeroTarjeta,
             montoGiftCard: data.montoGiftCard,
-            tcFacturaDetalle: data.tcFacturaDetalle || data.detalle
+            tcFacturaDetalle: data.tcFacturaDetalle || data.detalle,
+            codigoExcepcion: data.codigoExcepcion
         }
     }
 
