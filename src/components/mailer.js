@@ -113,6 +113,9 @@ class Mailer {
                                 <p>
                                 Estimad@(s) ${emitedInvoice.nombreRazonSocial}, la factura Nro ${emitedInvoice.numeroFactura} fue anulada correctamente.
                                 </p>
+                                <p>
+                                Motivo: ${emitedInvoice.descripcionMotivo}
+                                </p>
                               </div>
                           </div>
                       </div>

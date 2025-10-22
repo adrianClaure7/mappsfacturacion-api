@@ -31,6 +31,7 @@ const InvoiceGenerator = require("./invoiceGenerator");
 const logger = require("../../commons/logger");
 const ToGenerateInvoice = require("../toGenerateInvoices/toGenerateInvoice.model");
 const InvoiceXmlSign = require("../invoiceXmlSigns/invoiceXmlSign.model");
+const Cufd = require("../cufds/cufd.model");
 
 router.post("/getSubsidiaryDataToInvoice", async function (req, res) {
   // Generate control code
@@ -83,11 +84,16 @@ router.get("/getInvoiceInfoByOrderId/:orderId", function (req, res) {
                   subsidiary
                 }
                 var codigos = new Sincronizacion({});
-                codigos.getMetodosDePagoDisponibles(currentMongoose, subsidiary).then(paymentMethods => {
-                  data.paymentMethods = paymentMethods;
-                  codigos.getParametricaTipoDocumentoIdentidad(currentMongoose, subsidiary).then(listaTiposDocumentoIdentidad => {
-                    data.listaTiposDocumentoIdentidad = listaTiposDocumentoIdentidad || [];
-                    res.json(data);
+                codigos.getLeyenda(currentMongoose, subsidiary, order.orderDetails[0].economicActivity).then(leyenda => {
+                  data.leyenda = leyenda;
+                  codigos.getMetodosDePagoDisponibles(currentMongoose, subsidiary).then(paymentMethods => {
+                    data.paymentMethods = paymentMethods;
+                    codigos.getParametricaTipoDocumentoIdentidad(currentMongoose, subsidiary).then(listaTiposDocumentoIdentidad => {
+                      data.listaTiposDocumentoIdentidad = listaTiposDocumentoIdentidad || [];
+                      res.json(data);
+                    }).catch(err => {
+                      res.status(403).send(err);
+                    })
                   }).catch(err => {
                     res.status(403).send(err);
                   })
@@ -192,6 +198,15 @@ router.post("/recepcionFactura", async (req, res) => {
         return res.status(404).json({ error: "Subsidiary not found" });
       }
 
+      if (data.cufdControl) {
+        const cufd = await Cufd(currentMongoose).findOne({ codigoControl: data.cufdControl }).lean();
+        if (cufd) {
+          data.emitedInvoice.cufd = cufd.codigo;
+          data.emitedInvoice.cufdControl = data.cufdControl;
+        }
+      }
+
+      data.emitedInvoice.cafc = subsidiary.cafc;
       const dataInvoice = { tcFactura: data.emitedInvoice };
       dataInvoice.tcFactura.fechaEmision = data.fechaEnvio;
       dataInvoice.tcFactura.horaEmision = data.horaEnvio;
@@ -358,12 +373,21 @@ router.post("/recepcionPaqueteFactura", async (req, res) => {
     // Get merchant configuration
     const merchantConfig = await MerchantConfig(currentMongoose).findOne().select();
     data.merchantConfig = merchantConfig;
+    const subsidiary = await Subsidiary(currentMongoose).findOne({ codigoPuntoVenta: data.info.codigoPuntoVenta, codigoSucursal: data.info.codigoSucursal }).lean();
+    let invoiceXmlSign;
+    if (subsidiary.modalidad == 1) {
+      invoiceXmlSign = await InvoiceXmlSign(currentMongoose).findOne().lean();
+    }
 
-    data.invoices = data.invoices.map(x => {
+    data.invoices = await Promise.all(data.invoices.map(async x => {
       const xmlData = GenerateInvoiceOnline.generateXmlData(x.emitedInvoice);
       x.xml = GenerateInvoiceOnline.generateInvoiceXML(xmlData, x.emitedInvoice, x.emitedInvoice.cuf);
+
+      if (invoiceXmlSign) {
+        x.xml = await GenerateInvoiceOnline.signXML(x.xml, invoiceXmlSign);
+      }
       return x;
-    })
+    }))
 
 
     // Generate invoice files
@@ -438,6 +462,7 @@ router.post("/anulacionFactura", async (req, res) => {
       // Generate PDF for the canceled invoice
       const pdfData = await PDFGenerator.createInvoicePDF(result, true);
       result.pdfBase64 = pdfData.pdfBase64;
+      result.descripcionMotivo = data.descripcionMotivo;
 
       try {
         // Send cancellation email

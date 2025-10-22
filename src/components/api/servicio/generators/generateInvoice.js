@@ -300,7 +300,7 @@ class GenerateInvoiceOnline {
 
         const generatedCuf = cufGenerator.generateCuf();
 
-        return `${generatedCuf}${subsidiary.RespuestaCufd ? subsidiary.RespuestaCufd.codigoControl : ''}`;
+        return `${generatedCuf}${preparedCuf.cufd ? preparedCuf.cufd : subsidiary.RespuestaCufd ? subsidiary.RespuestaCufd.codigoControl : ''}`;
     }
 
     static prepareCUF(data, subsidiary) {
@@ -317,7 +317,8 @@ class GenerateInvoiceOnline {
             tipoFactura: subsidiary.tipoFactura || 0,
             tipoDoc: subsidiary.codigoDocumentoSector || 0,
             numeroFactura: data.tcFactura.numeroFactura || subsidiary.numeroFactura || 0,
-            codigoPuntoVenta: data.tcFactura.codigoPuntoVenta || 0
+            codigoPuntoVenta: data.tcFactura.codigoPuntoVenta || 0,
+            cufd: data.tcFactura.cufdControl
         };
 
         return cuf;
@@ -343,7 +344,7 @@ class GenerateInvoiceOnline {
            <telefono>${data.telefono}</telefono>
            <numeroFactura>${data.numeroFactura || subsidiary.numeroFactura}</numeroFactura>
            <cuf>${cuf}</cuf>
-           <cufd>${subsidiary.RespuestaCufd ? subsidiary.RespuestaCufd.codigo : subsidiary.cufd ? subsidiary.cufd : ''}</cufd>
+           <cufd>${data.cufd ? data.cufd : subsidiary.RespuestaCufd ? subsidiary.RespuestaCufd.codigo : subsidiary.cufd ? subsidiary.cufd : ''}</cufd>
            <codigoSucursal>${data.codigoSucursal}</codigoSucursal>
            <direccion>${data.direccion}</direccion>
            <codigoPuntoVenta>${subsidiary.codigoPuntoVenta || 0}</codigoPuntoVenta>
@@ -464,7 +465,9 @@ class GenerateInvoiceOnline {
             numeroTarjeta: data.numeroTarjeta,
             montoGiftCard: data.montoGiftCard,
             tcFacturaDetalle: data.tcFacturaDetalle || data.detalle,
-            codigoExcepcion: data.codigoExcepcion
+            codigoExcepcion: data.codigoExcepcion,
+            cafc: data.cafc,
+            cufd: data.cufd
         }
     }
 
