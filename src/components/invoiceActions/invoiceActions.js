@@ -202,6 +202,7 @@ router.post("/recepcionFactura", async (req, res) => {
         const cufd = await Cufd(currentMongoose).findOne({ codigoControl: data.cufdControl }).lean();
         if (cufd) {
           data.emitedInvoice.cufd = cufd.codigo;
+          data.cufd = cufd.codigo;
           data.emitedInvoice.cufdControl = data.cufdControl;
         }
       }
