@@ -228,10 +228,12 @@ router.post("/getHomeData", function (req, res) {
       .select('businessName allowWppNotifications imgUrl imgRouteName')
       .then(merchantConfig => {
         if (!merchantConfig) res.status(404).send("not found MerchantConfig");
-        var data = {
-          merchantConfig
-        };
-        res.send(data);
+        else {
+          var data = {
+            merchantConfig
+          };
+          res.json(data);
+        }
       });
   } else {
     res.status(404).json("Connection mongoose not found");
