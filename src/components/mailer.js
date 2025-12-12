@@ -64,6 +64,62 @@ class Mailer {
     }
   }
 
+  async sendEmitedInvoiceRevertida(currentMongoose, emitedInvoice, merchantConfigData = undefined) {
+    try {
+      const merchantConfig = merchantConfigData || await MerchantConfig(currentMongoose)
+        .findOne()
+        .select("email businessName imgUrl phone iso2");
+
+      const mailOptions = {
+        from: "mappsbo2@gmail.com", // sender address
+        to: emitedInvoice.emailToSend, // list of receivers
+        subject: `${merchantConfig.businessName}: Notificación de emisión de factura (revertida)`, // Subject line
+        html: `
+              <div style="font-family:'Open Sans',Roboto,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;color:#757575;line-height:150%;letter-spacing:normal">
+                  <div padding:50px 10px">
+                      <div style="max-width:600px;margin:auto">
+                          <div style="background:#fff;padding:15px 30px 25px 30px;border-radius:5px">
+                              <div style="margin:20px 0 30px">
+                                <h3>Factura Revertida Emitida</h3>
+                                <p>
+                                Estimad@(s) ${emitedInvoice.nombreRazonSocial}, gracias por usar los servicios que <b>${merchantConfig.businessName}</b> pone a tu disposición, adjuntamos la factura correspondiente a tu transacción financiera.
+                                
+                                Si tienes alguna consulta respecto a tus facturas, por favor envía un correo a ${merchantConfig.email}.
+                                
+                                </p>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              `,
+        attachments: [],
+      };
+
+      if (emitedInvoice.pdfBase64 || emitedInvoice.FacturaPDF) {
+        mailOptions.attachments.push({
+          filename: `${emitedInvoice.id || emitedInvoice._id}.pdf`,
+          content: emitedInvoice.pdfBase64 || emitedInvoice.FacturaPDF,
+          encoding: "base64",
+        });
+      }
+
+      if (emitedInvoice.xmlData || emitedInvoice.FacturaXML) {
+        mailOptions.attachments.push({
+          filename: `${emitedInvoice.id || emitedInvoice._id}.xml`,
+          content: emitedInvoice.xmlData || emitedInvoice.FacturaXML,
+        });
+      }
+
+      const info = await this.transporterSendMail(mailOptions);
+      return info;
+    } catch (err) {
+      logger.warn('[sendEmitedInvoice] Error: ', err);
+      console.log('[sendEmitedInvoice] Error: ', err);
+      // throw new Error(err.message);
+    }
+  }
+
   async transporterSendMail(mailOptions) {
     try {
       const superMongoose = await ConnectionHandler.getSuperAdminConnection();
@@ -115,6 +171,9 @@ class Mailer {
                                 </p>
                                 <p>
                                 Motivo: ${emitedInvoice.descripcionMotivo}
+                                </p>
+                                <p>
+                                COD. AUTORIZACIÓN: ${emitedInvoice.cuf}
                                 </p>
                               </div>
                           </div>

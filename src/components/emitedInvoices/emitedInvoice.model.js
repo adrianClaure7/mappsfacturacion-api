@@ -40,6 +40,7 @@ var EmitedInvoiceSchema = new Schema({
   numeroFactura: Number,
   nombreRazonSocial: String, // NOMBRE NIT
   numeroDocumento: String, // NIT
+  complemento: String,
   leyenda: String,
   fechaEmision: Date,
   codigoTipoDocumentoIdentidad: Number,

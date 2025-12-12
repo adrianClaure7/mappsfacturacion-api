@@ -96,12 +96,13 @@ class PDFGenerator {
             } else {
                 doc.text(moment(data.fechaEmision).tz("America/La_Paz").format('DD-MM-YYYY HH:mm'), margin + 50, currentY);
             }
+            const complemento = data.complemento ? ` -${data.complemento}` : '';
 
             // Align NIT/CI/CEX to the same Y position as Fecha
             doc.setFont("helvetica", "bold");
             doc.text("NIT/CI/CEX:", pageWidth - margin - 60, currentY); // Align at the same Y as Fecha
             doc.setFont("helvetica", "normal");
-            doc.text(`${data.numeroDocumento}`, pageWidth - margin - 15, currentY, null, null, "right");
+            doc.text(`${data.numeroDocumento}${complemento}`, pageWidth - margin - 15, currentY, null, null, "right");
 
             currentY += 5;
 

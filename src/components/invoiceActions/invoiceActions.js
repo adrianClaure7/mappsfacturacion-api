@@ -491,7 +491,7 @@ router.post("/reversionFactura", function (req, res) {
     facturacion.reversionAnulacionFactura(currentMongoose, data, user ? user.username : '').then(result => {
       PDFGenerator.createInvoicePDF(result).then((pdfData) => {
         result.pdfBase64 = pdfData.pdfBase64;
-        mailer.sendEmitedInvoice(currentMongoose, result).then(() => {
+        mailer.sendEmitedInvoiceRevertida(currentMongoose, result).then(() => {
           res.send(result);
         }).catch(err => {
           res.send(result);

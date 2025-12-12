@@ -352,7 +352,7 @@ class GenerateInvoiceOnline {
            <nombreRazonSocial>${data.nombreRazonSocial}</nombreRazonSocial>
            <codigoTipoDocumentoIdentidad>${data.codigoTipoDocumentoIdentidad}</codigoTipoDocumentoIdentidad>
            <numeroDocumento>${data.numeroDocumento}</numeroDocumento>
-           <complemento xsi:nil="true"/>
+           ${data.complemento ? `<complemento>${data.complemento}</complemento>` : ` <complemento xsi:nil="true"/>`}
            <codigoCliente>${data.codigoCliente}</codigoCliente>
            <codigoMetodoPago>${data.codigoMetodoPago}</codigoMetodoPago>
            ${data.numeroTarjeta ? `<numeroTarjeta>${data.numeroTarjeta}</numeroTarjeta>` : `<numeroTarjeta xsi:nil="true"/>`}
@@ -467,7 +467,8 @@ class GenerateInvoiceOnline {
             tcFacturaDetalle: data.tcFacturaDetalle || data.detalle,
             codigoExcepcion: data.codigoExcepcion,
             cafc: data.cafc,
-            cufd: data.cufd
+            cufd: data.cufd,
+            complemento: data.complemento
         }
     }
 
