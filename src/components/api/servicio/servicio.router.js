@@ -21,15 +21,18 @@ router.post("/emitirFacturaOnline/", async function (req, res, next) {
   const currentMongoose = req.currentMongoose;
   const user = req.auth;
   if (currentMongoose) {
+    console.log('[emitirFacturaOnline] ', req.body)
     try {
       const facturaEmitida = await Servicio.emitirFacturaOnline(currentMongoose, req.body, user);
       if (facturaEmitida && !facturaEmitida.error) {
         const response = apiFunctions.validResponse(facturaEmitida, "factura emitida correctamente", "Se obtuvo correctamente");
         res.send(response);
       } else if (facturaEmitida && facturaEmitida.error) {
+        console.log('[emitirFacturaOnline] Error 1 ', facturaEmitida.error)
         const response = apiFunctions.errorResponse(facturaEmitida.error && facturaEmitida.error.message ? facturaEmitida.error.message : facturaEmitida.error, "Error no pudo emitirse la factura", "Error");
         res.send(response);
       } else {
+        console.log('[emitirFacturaOnline]  Error 2', facturaEmitida)
         const response = apiFunctions.errorResponse(null, "Error no pudo emitirse la factura", "Error");
         res.send(response);
       }
