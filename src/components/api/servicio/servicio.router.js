@@ -145,6 +145,7 @@ router.post("/emitirFacturaOnlineRapida/", async function (req, res, next) {
         res.send(response);
       }
     } catch (err) {
+      console.log('[emitirFacturaOnline]  err', err)
       res.status(403).send(err);
     }
   } else {
