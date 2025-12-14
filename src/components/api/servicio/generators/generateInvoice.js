@@ -103,8 +103,12 @@ class GenerateInvoiceOnline {
                                     if (!invoice.id && !invoice._id) {
                                         invoice.id = 'Facturavisual'
                                     }
+                                    console.log('[generateInvoice] sendEmitedInvoice', invoice)
                                     mailer.sendEmitedInvoice(merchantMongoose, invoice).then(() => {
+                                    }).catch(err => {
+
                                     });
+                                    console.log('[generateInvoice] Resolve ', invoice)
                                     resolve({ invoice, data });
                                 }).catch(err => {
                                     reject(err);
@@ -136,6 +140,8 @@ class GenerateInvoiceOnline {
                                     invoice.id = 'Facturavisual'
                                 }
                                 mailer.sendEmitedInvoice(merchantMongoose, invoice).then(() => {
+
+                                }).catch(err => {
 
                                 });
                                 resolve({ invoice, data });
