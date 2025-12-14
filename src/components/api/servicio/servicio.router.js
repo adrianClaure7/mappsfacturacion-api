@@ -136,11 +136,11 @@ router.post("/emitirFacturaOnlineRapida/", async function (req, res, next) {
         const response = apiFunctions.validResponse(facturaEmitida, "factura emitida correctamente", "Se obtuvo correctamente");
         res.send(response);
       } else if (facturaEmitidaData && facturaEmitidaData.error) {
-        console.log('[emitirFacturaOnline] Error 1 ', facturaEmitida.error)
+        console.log('[emitirFacturaOnline] Error 1 ', facturaEmitidaData)
         const response = apiFunctions.errorResponse(facturaEmitidaData.error && facturaEmitidaData.error.message ? facturaEmitidaData.error.message : facturaEmitidaData.error, "Error no pudo emitirse la factura", "Error");
         res.send(response);
       } else {
-        console.log('[emitirFacturaOnline]  Error 2', facturaEmitida)
+        console.log('[emitirFacturaOnline]  Error 2', facturaEmitida, facturaEmitidaData)
         const response = apiFunctions.errorResponse(null, "Error no pudo emitirse la factura", "Error");
         res.send(response);
       }
