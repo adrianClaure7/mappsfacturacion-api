@@ -133,6 +133,7 @@ router.post("/emitirFacturaOnlineRapida/", async function (req, res, next) {
       const facturaEmitidaData = await Servicio.emitirFacturaOnlineRapida(currentMongoose, req.body, user);
       const facturaEmitida = facturaEmitidaData.invoice;
       if (facturaEmitida && !facturaEmitidaData.error) {
+        console.log('[emitirFacturaOnline] Factura emitida: ', facturaEmitidaData);
         const response = apiFunctions.validResponse(facturaEmitida, "factura emitida correctamente", "Se obtuvo correctamente");
         res.send(response);
       } else if (facturaEmitidaData && facturaEmitidaData.error) {
