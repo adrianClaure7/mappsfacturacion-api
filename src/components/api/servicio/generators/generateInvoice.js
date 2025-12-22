@@ -104,10 +104,9 @@ class GenerateInvoiceOnline {
                                         invoice.id = 'Facturavisual'
                                     }
                                     mailer.sendEmitedInvoice(merchantMongoose, invoice).then(() => {
-                                        console.log('[Servicio] [generateInvoice] (mailer.sendEmitedInvoice): ', 'Factura Enviada correctamente'  );
+                                        console.log('[Servicio] [generateInvoice-Electronica] (mailer.sendEmitedInvoice): ', 'Factura Enviada correctamente');
                                     }).catch(err => {
-                                        console.log('[Servicio] Error[generateInvoice]: ', err, err?.message || '0');
-
+                                        console.log('[Servicio] Error[generateInvoice-Electronica]: ', err, err?.message || '0');
                                     });
                                     resolve({ invoice, data });
                                 }).catch(err => {
@@ -139,10 +138,11 @@ class GenerateInvoiceOnline {
                                 if (!invoice.id && !invoice._id) {
                                     invoice.id = 'Facturavisual'
                                 }
+                                console.log('[Servicio] [generateInvoice-Computarizada] (mailer.sendEmitedInvoice): ', 'Factura', JSON.stringify(invoice));
                                 mailer.sendEmitedInvoice(merchantMongoose, invoice).then(() => {
-
+                                    console.log('[Servicio] [generateInvoice-Computarizada] (mailer.sendEmitedInvoice): ', 'Factura Enviada correctamente');
                                 }).catch(err => {
-
+                                    console.log('[Servicio] Error[generateInvoice-Computarizada]: ', err, err?.message || '0');
                                 });
                                 resolve({ invoice, data });
                             }).catch(err => {
