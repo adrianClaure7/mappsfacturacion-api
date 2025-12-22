@@ -104,7 +104,9 @@ class GenerateInvoiceOnline {
                                         invoice.id = 'Facturavisual'
                                     }
                                     mailer.sendEmitedInvoice(merchantMongoose, invoice).then(() => {
+                                        console.log('[Servicio] [generateInvoice] (mailer.sendEmitedInvoice): ', 'Factura Enviada correctamente'  );
                                     }).catch(err => {
+                                        console.log('[Servicio] Error[generateInvoice]: ', err, err?.message || '0');
 
                                     });
                                     resolve({ invoice, data });
