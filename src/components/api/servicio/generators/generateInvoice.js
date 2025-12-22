@@ -13,6 +13,7 @@ const Utilities = require("../../../../commons/utilities");
 const Product = require("../../../products/product.model");
 let mailer = new Mailer();
 const InvoiceXmlSign = require("../../../invoiceXmlSigns/invoiceXmlSign.model");
+const Sincronizacion = require("../../../onlineInvoices/soap/sincronizacion");
 
 class GenerateInvoiceOnline {
 
@@ -52,8 +53,15 @@ class GenerateInvoiceOnline {
 
 
     static generateInvoice(merchantMongoose, data, subsidiary, username) {
-        return new Promise((resolve, reject) => {
-            MerchantConfig(merchantMongoose).findOne().select('facturacion').then(merchantConfig => {
+        return new Promise(async (resolve, reject) => {
+            if (!subsidiary.leyenda || subsidiary.leyenda == '0' || subsidiary.leyenda == '') {
+                if (data.tcFacturaDetalle && data.tcFacturaDetalle.length > 0) {
+                    const codigos = new Sincronizacion({});
+                    const leyendaData = await codigos.getLeyenda(merchantMongoose, subsidiary, data.tcFacturaDetalle[0].actividadEconomica);
+                    subsidiary.leyenda = leyendaData.descripcionLeyenda;
+                }
+            }
+            MerchantConfig(merchantMongoose).findOne().select('facturacion').then(async merchantConfig => {
                 data.tcFactura.codigoAmbiente = merchantConfig.facturacion ? `${merchantConfig.facturacion.codigoAmbiente}` : data.tcFactura.codigoAmbiente;
                 data.tcFactura.nitEmisor = merchantConfig.facturacion ? `${merchantConfig.facturacion.nitEmisor}` : data.tcFactura.nitEmisor;
                 data.tcFactura.codigoModalidad = merchantConfig.facturacion ? `${merchantConfig.facturacion.codigoModalidad}` : data.tcFactura.codigoModalidad;
@@ -365,7 +373,7 @@ class GenerateInvoiceOnline {
            <codigoMetodoPago>${data.codigoMetodoPago}</codigoMetodoPago>
            ${data.numeroTarjeta ? `<numeroTarjeta>${data.numeroTarjeta}</numeroTarjeta>` : `<numeroTarjeta xsi:nil="true"/>`}
            <montoTotal>${Utilities.convertToFloat2(data.montoTotal * data.tipoCambio).toFixed(2)}</montoTotal>
-           <montoTotalSujetoIva>${Utilities.convertToFloat2((data.montoTotalSujetoIva - (data.montoGiftCard ? data.montoGiftCard : 0)) * data.tipoCambio).toFixed(2)}</montoTotalSujetoIva>
+           <montoTotalSujetoIva>${Utilities.convertToFloat2((data.montoTotalSujetoIva - (data && data.montoGiftCard ? data.montoGiftCard : 0)) * data.tipoCambio).toFixed(2)}</montoTotalSujetoIva>
            <codigoMoneda>${data.codigoMoneda}</codigoMoneda>
            <tipoCambio>${data.tipoCambio}</tipoCambio>
            <montoTotalMoneda>${Utilities.convertToFloat2(data.montoTotal).toFixed(2)}</montoTotalMoneda>

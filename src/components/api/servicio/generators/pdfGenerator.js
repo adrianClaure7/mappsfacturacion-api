@@ -136,14 +136,15 @@ class PDFGenerator {
                     subTotal: `${Utilities.convertToFloat2((Utilities.convertToFloat2(element.precioUnitario * data.tipoCambio) * Utilities.convertToFloat2(element.cantidad)) - (element.montoDescuento * data.tipoCambio)).toFixed(2)}`
                 });
             });
-            const total = Utilities.convertToFloat2(subTotal - (data.descuentoAdicional * data.tipoCambio));
+            const total = Utilities.convertToFloat2(subTotal - ((data && data.descuentoAdicional ? data.descuentoAdicional : 0) * data.tipoCambio))
+            const giftCardTotal = data && data.montoGiftCard ? data.montoGiftCard : 0;
             // Add SUBTOTAL and other values in rows with merged columns for CANTIDAD and PRECIO UNITARIO
             tableData.push({ codigoProducto: "", descripcion: "", cantidad: "SUBTOTAL Bs.", precioUnitario: "", subTotal: `${subTotal.toFixed(2)}` });
             tableData.push({ codigoProducto: "", descripcion: "", cantidad: "DESCUENTO Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(data.descuentoAdicional * data.tipoCambio).toFixed(2)}` });
             tableData.push({ codigoProducto: "", descripcion: "", cantidad: "TOTAL Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total).toFixed(2)}` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO GIFT CARD Bs.", precioUnitario: "", subTotal: `${(data.montoGiftCard * data.tipoCambio).toFixed(2)}` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO A PAGAR Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total - (data.montoGiftCard * data.tipoCambio)).toFixed(2)}` });
-            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "IMPORTE BASE CRÉDITO FISCAL Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total - (data.montoGiftCard * data.tipoCambio)).toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO GIFT CARD Bs.", precioUnitario: "", subTotal: `${(giftCardTotal * data.tipoCambio).toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "MONTO A PAGAR Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total - (giftCardTotal * data.tipoCambio)).toFixed(2)}` });
+            tableData.push({ codigoProducto: "", descripcion: "", cantidad: "IMPORTE BASE CRÉDITO FISCAL Bs.", precioUnitario: "", subTotal: `${Utilities.convertToFloat2(total - (giftCardTotal * data.tipoCambio)).toFixed(2)}` });
 
             const totalRowCount = tableData.length;
 
@@ -176,7 +177,7 @@ class PDFGenerator {
                         // Totals section: Merge CANTIDAD and PRECIO UNITARIO columns
                         return [
                             {
-                                content: index === totalRowCount - 3 ? `Son: ${NumeroALetras.numeroALetras(Utilities.convertToFloat2(total - (data.montoGiftCard * data.tipoCambio)))}` : '',
+                                content: index === totalRowCount - 3 ? `Son: ${NumeroALetras.numeroALetras(Utilities.convertToFloat2(total - (giftCardTotal * data.tipoCambio)))}` : '',
                                 colSpan: 3,
                                 styles: { halign: 'center', fontStyle: 'bold', lineWidth: 0, lineColor: [0, 0, 0], borderTop: true } // Add top border here
                             },
