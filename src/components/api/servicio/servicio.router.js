@@ -128,25 +128,25 @@ router.post("/emitirFacturaOnlineRapida/", async function (req, res, next) {
   const currentMongoose = req.currentMongoose;
   const user = req.auth;
   if (currentMongoose) {
-    console.log('[emitirFacturaOnline] ', req.body)
+    console.log('[emitirFacturaOnlineRapida] ', req.body)
     try {
       const facturaEmitidaData = await Servicio.emitirFacturaOnlineRapida(currentMongoose, req.body, user);
       const facturaEmitida = facturaEmitidaData.invoice;
       if (facturaEmitida && !facturaEmitidaData.error) {
-        console.log('[emitirFacturaOnline] Factura emitida: ', facturaEmitidaData);
+        console.log('[emitirFacturaOnlineRapida] Factura emitida: ', facturaEmitidaData);
         const response = apiFunctions.validResponse(facturaEmitida, "factura emitida correctamente", "Se obtuvo correctamente");
         res.send(response);
       } else if (facturaEmitidaData && facturaEmitidaData.error) {
-        console.log('[emitirFacturaOnline] Error 1 ', facturaEmitidaData)
+        console.log('[emitirFacturaOnlineRapida] Error 1 ', facturaEmitidaData)
         const response = apiFunctions.errorResponse(facturaEmitidaData.error && facturaEmitidaData.error.message ? facturaEmitidaData.error.message : facturaEmitidaData.error, "Error no pudo emitirse la factura", "Error");
         res.send(response);
       } else {
-        console.log('[emitirFacturaOnline]  Error 2', facturaEmitida, facturaEmitidaData)
+        console.log('[emitirFacturaOnlineRapida]  Error 2', facturaEmitida, facturaEmitidaData)
         const response = apiFunctions.errorResponse(null, "Error no pudo emitirse la factura", "Error");
         res.send(response);
       }
     } catch (err) {
-      console.log('[emitirFacturaOnline]  err', err)
+      console.log('[emitirFacturaOnlineRapida]  err', err)
       res.status(403).send(err);
     }
   } else {

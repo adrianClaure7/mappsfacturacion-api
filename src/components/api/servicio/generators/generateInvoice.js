@@ -100,6 +100,7 @@ class GenerateInvoiceOnline {
                                         invoice.id = result.emitedInvoice._id;
                                     }
                                     invoice.emailToSend = data.tcFactura.correoCliente;
+                                    console.log('[recepcionFacturaApi][email]: ', invoice.emailToSend)
                                     if (!invoice.id && !invoice._id) {
                                         invoice.id = 'Facturavisual'
                                     }
@@ -135,6 +136,7 @@ class GenerateInvoiceOnline {
                                     invoice.id = result.emitedInvoice._id;
                                 }
                                 invoice.emailToSend = data.tcFactura.correoCliente;
+                                console.log('[recepcionFacturaApi][email]: ', invoice.emailToSend)
                                 if (!invoice.id && !invoice._id) {
                                     invoice.id = 'Facturavisual'
                                 }
